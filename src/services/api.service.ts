@@ -20,3 +20,13 @@ export const getNotes = async (): Promise<INote[]> => {
     const response: AxiosResponse<INote[]> = await apiClient.get('/posts');
     return response.data;
 }
+
+/**
+ * method to delete a note
+ * @param id 
+ */
+export const deleteNote = async (id: number): Promise<void> => {
+    await apiClient.delete(`/posts/${id}`);
+}
+
+

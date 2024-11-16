@@ -25,22 +25,30 @@
                         <input type="checkbox" v-model="note.completed" />
                     </td>
                     <td>
-                        <button @click="editNote(note)">Редактировать</button>
-                        <button @click="deleteNote(note.id)">Удалить</button>
+                        <button @click="handleEditNote(note)">Редактировать</button>
+                        <button @click="confirmDelete(note.id)">Удалить</button>
                     </td>
                 </tr>
             </tbody>
         </table>
     </section>
+
+    <BaseModal v-if="isModalOpen" :id="noteId" @primaryAction="handleDeleteNote(noteId)"
+        @secondaryAction="changeActiveModal(false)" @close="changeActiveModal(false)" />
+
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { RouterLink } from 'vue-router'
 import { useNotesStore } from '../stores/notesStore';
+import BaseModal from '../components/BaseModal.vue';
 
 const notesStore = useNotesStore();
 const notes = computed(() => notesStore.notes);
+const noteId = ref(null);
+
+let isModalOpen = ref(false);
 
 /**
  * get notes from server on component mount
@@ -55,6 +63,22 @@ onMounted(() => {
  */
 const formatNoteTitle = (title: string) => {
     return title.trim().replace(/\s+/g, '-');
+};
+
+const confirmDelete = (id: number) => {
+    noteId.value = id;
+    changeActiveModal(true);
+};
+
+
+const handleDeleteNote = (id: number) => {
+    notesStore.removeNote(id);
+    changeActiveModal(false);
+    noteId.value = null;
+};
+
+const changeActiveModal = (state?: boolean) => {
+    isModalOpen.value = state ? state : !isModalOpen.value;
 };
 
 </script>
@@ -78,5 +102,6 @@ h1 {
 
 button {
     margin-right: 5px;
+    cursor: pointer;
 }
 </style>
