@@ -4,6 +4,8 @@
             <h1 class="header-page__title">Список заметок</h1>
         </header>
 
+        <BasePreloader v-if="isFetching" />
+
         <table class="table-notes">
             <thead>
                 <tr>
@@ -43,9 +45,11 @@ import { ref, onMounted, computed } from 'vue';
 import { RouterLink } from 'vue-router'
 import { useNotesStore } from '../stores/notesStore';
 import BaseModal from '../components/BaseModal.vue';
+import BasePreloader from '../components/BasePreloader.vue';
 
 const notesStore = useNotesStore();
 const notes = computed(() => notesStore.notes);
+const isFetching = computed(() => notesStore.isFetching);
 const noteId = ref(null);
 
 let isModalOpen = ref(false);
