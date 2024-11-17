@@ -2,6 +2,7 @@
     <section class="notes-list-view">
         <header class="header-page">
             <h1 class="header-page__title">Список заметок</h1>
+            <a @click="$router.push('/add')"> + Добавить заметку</a>
         </header>
 
         <BasePreloader v-if="isFetching" />
@@ -113,16 +114,17 @@ const handleDeleteNote = (id: number) => {
 };
 
 
-const confirmEdit = (note: any) => {
+
+const confirmEdit = (note: INote) => {
     noteId.value = note.id;
 
     let newModalState = {
-        readonly: false, 
+        readonly: false,
         modalTitle: 'Редактировать',
         modalText: note.title,
         modalPrimaryActionText: 'Сохранить',
         modalSecondaryActionText: 'Отмена',
-        modalPrimaryActionHandler: (newNoteTitle: string) => handleEditNote(newNoteTitle),
+        modalPrimaryActionHandler: (newNoteTitle: string) => handleEditNote(newNoteTitle, note.completed),
         modalSecondaryActionHandler: () => closeModal(),
         closeModal: () => closeModal(),
     }
@@ -130,11 +132,12 @@ const confirmEdit = (note: any) => {
     openModal(newModalState);
 };
 
-const handleEditNote = (newNoteTitle: string) => {
-    notesStore.editNote(noteId.value, newNoteTitle);
+const handleEditNote = (newNoteTitle: string, completed: boolean) => {
+    notesStore.editNote(noteId.value, newNoteTitle, completed);
     closeModal();
     noteId.value = null;
 };
+
 
 /**
  * open modal window

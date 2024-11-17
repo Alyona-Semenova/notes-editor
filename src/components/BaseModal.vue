@@ -1,20 +1,25 @@
 <template>
-    <div class="overlay"></div>
-    <div class="base-modal">
-        <div class="base-modal__close" @click="$emit('close')">&times;</div>
-        <h3 class="base-modal__title"> {{ modalTitle }}</h3>
-        <p v-if="readonly" class="base-modal__text">{{ localModalText }}</p>
-        <input v-if="!readonly" class="base-modal__text base-modal__text_edit" :value="localModalText" @input="onInput"/>
-        <div class="base-modal__actions">
-            <button class="base-modal__button" @click="onPrimaryAction">{{ primaryActionText }}</button>
-            <button class="base-modal__button" @click="onSecondaryAction">{{ secondaryActionText }}</button>
+
+        <div class="overlay"></div>
+        <div class="base-modal">
+            <CrossIcon :color="'red'" class="base-modal__close" @click.native="$emit('close')"/>
+            <h3 class="base-modal__title"> {{ modalTitle }}</h3>
+            <p v-if="readonly" class="base-modal__text">{{ localModalText }}</p>
+            <input v-if="!readonly" class="base-modal__text base-modal__text_edit" :value="localModalText" @input="onInput"/>
+            <div class="base-modal__actions">
+                <button class="base-modal__button" @click="onPrimaryAction">{{ primaryActionText }}</button>
+                <button class="base-modal__button" @click="onSecondaryAction">{{ secondaryActionText }}</button>
+            </div>
+
         </div>
-    </div>
+  
 </template>
 
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { CrossIcon } from './icons/index'; 
+
 
 defineOptions({
     name: 'BaseModal',

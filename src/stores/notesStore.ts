@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { getNotes, deleteNote, patchNote } from '../services/api.service';
+import { getNotes, deleteNote, patchNote, postNote } from '../services/api.service';
 import type { INote } from '../types/INote';
+
 
 export const useNotesStore = defineStore('notes', () => {
     const notes = ref<INote[]>([]);
@@ -11,6 +12,10 @@ export const useNotesStore = defineStore('notes', () => {
         isFetching.value = true;
         try {
             notes.value = await getNotes();
+            notes.value = notes.value.map(note => ({
+                ...note,
+                completed: false // default to false
+            }));
         } catch (error) {
             console.error('Error receiving notes:', error);
         } finally {
@@ -45,11 +50,24 @@ export const useNotesStore = defineStore('notes', () => {
         }
     }
 
+    const addNote = async (note: any) => {
+        isFetching.value = true;
+        try {
+            let newNote = await postNote(note);
+            notes.value.push(newNote);
+        } catch (error) {
+            console.error('Error adding note:', error);
+        } finally {
+            isFetching.value = false;
+        }
+    }
+
     return {
         notes,
         isFetching,
         fetchNotes,
         removeNote,
         editNote,
+        addNote,
     };
 });

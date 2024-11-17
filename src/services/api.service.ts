@@ -24,6 +24,7 @@ export const getNotes = async (): Promise<INote[]> => {
 /**
  * method to delete a note
  * @param id 
+ * @returns Promise<void>
  */
 export const deleteNote = async (id: number): Promise<void> => {
     await apiClient.delete(`/posts/${id}`);
@@ -33,6 +34,7 @@ export const deleteNote = async (id: number): Promise<void> => {
  * method to patch a note
  * @param id 
  * @param noteTitle
+ * @returns Promise<void>
  */
 export const patchNote = async (id: number, noteTitle: string): Promise<void> => {
     await apiClient.patch(`/posts/${id}`, {
@@ -40,5 +42,12 @@ export const patchNote = async (id: number, noteTitle: string): Promise<void> =>
     });
 }
 
-
-
+/**
+ * method to post a note
+ * @param note
+ * @returns Promise<INote>
+ */
+export const postNote = async (note: INote): Promise<INote> => {
+    const response: AxiosResponse<INote> = await apiClient.post(`/posts/`, note);
+    return response.data;
+}
