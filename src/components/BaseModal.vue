@@ -2,39 +2,71 @@
     <div class="overlay"></div>
     <div class="base-modal">
         <div class="base-modal__close" @click="$emit('close')">&times;</div>
-        <h3 class="base-modal___title"> {{ title }}</h3>
+        <h3 class="base-modal__title"> {{ modalTitle }}</h3>
+        <p v-if="readonly" class="base-modal__text">{{ localModalText }}</p>
+        <input v-if="!readonly" class="base-modal__text base-modal__text_edit" :value="localModalText" @input="onInput"/>
         <div class="base-modal__actions">
-            <button class="base-modal___button" @click="$emit('primaryAction')">{{ primaryAction }}</button>
-            <button class="base-modal___button" @click="$emit('secondaryAction')">{{ secondaryAction }}</button>
+            <button class="base-modal__button" @click="onPrimaryAction">{{ primaryActionText }}</button>
+            <button class="base-modal__button" @click="onSecondaryAction">{{ secondaryActionText }}</button>
         </div>
     </div>
 </template>
 
 
 <script setup lang="ts">
+import { ref } from 'vue'
+
 defineOptions({
     name: 'BaseModal',
 })
 
-defineProps({
-    primaryAction: {
+const emit = defineEmits(['primaryAction', 'secondaryAction', 'close'])
+
+const props = defineProps({
+    primaryActionText: {
         type: String,
         default: 'Удалить',
     },
-    secondaryAction: {
+
+    secondaryActionText: {
         type: String,
         default: 'Отмена',
     },
-    title: {
+
+    modalTitle : {
         type: String,
         default: 'Удалить',
     },
-    id: {
-        type: Number,
-        required: true,
+
+    modalText: {
+        type: String,
+        default: 'Подтвердите действие',
     },
 
+    readonly: {
+        type: Boolean,
+        default: true
+    }
 })
+
+let localModalText = ref(props.modalText);
+
+const onPrimaryAction = () => {
+    if (!props.readonly && localModalText.value !== props.modalText) { 
+        emit('primaryAction', localModalText.value);
+    } else {
+        emit('primaryAction')
+    }
+};
+
+const onSecondaryAction = () => {
+    emit('secondaryAction')
+};
+
+const onInput = (event: Event) => {
+    localModalText.value = (event.target as HTMLInputElement).value; 
+};
+
 </script>
 
 <style lang="scss" scoped>
@@ -51,7 +83,7 @@ defineProps({
 .base-modal {
     width: 500px;
     height: 150px;
-    position: absolute;
+    position: fixed;
     top: calc(50% - 75px);
     left: calc(50% - 250px);
     background-color: #fff;
@@ -75,6 +107,10 @@ defineProps({
         top: 10px;
         right: 20px;
         font-size: 20px;
+        cursor: pointer;
+    }
+
+    &__button {
         cursor: pointer;
     }
 }

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { getNotes, deleteNote } from '../services/api.service'; 
+import { getNotes, deleteNote, patchNote } from '../services/api.service';
 import type { INote } from '../types/INote';
 
 export const useNotesStore = defineStore('notes', () => {
@@ -14,7 +14,7 @@ export const useNotesStore = defineStore('notes', () => {
         } catch (error) {
             console.error('Error receiving notes:', error);
         } finally {
-            isFetching.value = false; 
+            isFetching.value = false;
         }
     };
 
@@ -26,14 +26,30 @@ export const useNotesStore = defineStore('notes', () => {
         } catch (error) {
             console.error(`Error deleting note id: ${id}:`, error);
         } finally {
-            isFetching.value = false; 
+            isFetching.value = false;
         }
     }
 
-    return { 
-        notes, 
+    const editNote = async (id: number, noteTitle: string) => {
+        isFetching.value = true;
+        try {
+            await patchNote(id, noteTitle);
+            const index = notes.value.findIndex(note => note.id === id);
+            if (index !== -1) {
+                notes.value[index].title = noteTitle;
+            }
+        } catch (error) {
+            console.error(`Error editing note id: ${id}:`, error);
+        } finally {
+            isFetching.value = false;
+        }
+    }
+
+    return {
+        notes,
         isFetching,
-        fetchNotes, 
-        removeNote,  
+        fetchNotes,
+        removeNote,
+        editNote,
     };
 });

@@ -27,7 +27,7 @@
                         <input type="checkbox" v-model="note.completed" />
                     </td>
                     <td>
-                        <button @click="handleEditNote(note)">Редактировать</button>
+                        <button @click="confirmEdit(note)">Редактировать</button>
                         <button @click="confirmDelete(note.id)">Удалить</button>
                     </td>
                 </tr>
@@ -35,13 +35,21 @@
         </table>
     </section>
 
-    <BaseModal v-if="isModalOpen" :id="noteId" @primaryAction="handleDeleteNote(noteId)"
-        @secondaryAction="changeActiveModal(false)" @close="changeActiveModal(false)" />
+    <BaseModal v-if="isModalOpen" 
+        :readonly="modalState.readonly"
+        :modalTitle="modalState.modalTitle" 
+        :modalText="modalState.modalText"
+        :primaryActionText="modalState.modalPrimaryActionText"
+        :secondaryActionText="modalState.modalSecondaryActionText" 
+        :id="noteId"
+        @primaryAction="modalState.modalPrimaryActionHandler" 
+        @secondaryAction="modalState.modalSecondaryActionHandler"
+        @close="modalState.closeModal" />
 
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { RouterLink } from 'vue-router'
 import { useNotesStore } from '../stores/notesStore';
 import BaseModal from '../components/BaseModal.vue';
@@ -51,6 +59,18 @@ const notesStore = useNotesStore();
 const notes = computed(() => notesStore.notes);
 const isFetching = computed(() => notesStore.isFetching);
 const noteId = ref(null);
+
+let modalState = reactive({
+    readonly: null,
+    modalTitle: '',
+    modalText: '', 
+    modalPrimaryActionText: '', 
+    modalSecondaryActionText: '', 
+    modalPrimaryActionHandler: () => { },
+    modalSecondaryActionHandler: () => { }, 
+    closeModal: () => { }, 
+});
+
 
 let isModalOpen = ref(false);
 
@@ -71,15 +91,77 @@ const formatNoteTitle = (title: string) => {
 
 const confirmDelete = (id: number) => {
     noteId.value = id;
-    changeActiveModal(true);
-};
 
+    let newModalState = {
+        readonly: true, 
+        modalTitle: 'Удалить',
+        modalText: 'Действительно хотите удалить?',
+        modalPrimaryActionText: 'Удалить',
+        modalSecondaryActionText: 'Отмена',
+        modalPrimaryActionHandler: () => handleDeleteNote(noteId.value),
+        modalSecondaryActionHandler: () => closeModal(),
+        closeModal: () => closeModal(),
+    }
+
+    openModal(newModalState)
+};
 
 const handleDeleteNote = (id: number) => {
     notesStore.removeNote(id);
-    changeActiveModal(false);
+    closeModal();
     noteId.value = null;
 };
+
+
+const confirmEdit = (note: any) => {
+    noteId.value = note.id;
+
+    let newModalState = {
+        readonly: false, 
+        modalTitle: 'Редактировать',
+        modalText: note.title,
+        modalPrimaryActionText: 'Сохранить',
+        modalSecondaryActionText: 'Отмена',
+        modalPrimaryActionHandler: (newNoteTitle: string) => handleEditNote(newNoteTitle),
+        modalSecondaryActionHandler: () => closeModal(),
+        closeModal: () => closeModal(),
+    }
+
+    openModal(newModalState);
+};
+
+const handleEditNote = (newNoteTitle: string) => {
+    notesStore.editNote(noteId.value, newNoteTitle);
+    closeModal();
+    noteId.value = null;
+};
+
+/**
+ * open modal window
+ * @param {string} modalTitle 
+ * @param {sriing} modalText 
+ * @param {sriing} modalPrimaryActionText 
+ * @param {sriing} modalSecondaryActionText 
+ * @param {} primaryActionHandler 
+ * @param {} secondaryActionHandle 
+ */
+let openModal = (newModalState) => {
+    modalState = newModalState;
+    changeActiveModal(true);
+};
+
+const closeModal = () => {
+    modalState = {
+        modalTitle: '',
+        modalText: '',
+        modalPrimaryActionText: '',
+        modalSecondaryActionText: '',
+        modalPrimaryActionHandler: () => {},
+        modalSecondaryActionHandler: () => {},
+    };
+
+    changeActiveModal(false);
+}
 
 const changeActiveModal = (state?: boolean) => {
     isModalOpen.value = state ? state : !isModalOpen.value;

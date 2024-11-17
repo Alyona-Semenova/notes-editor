@@ -29,4 +29,16 @@ export const deleteNote = async (id: number): Promise<void> => {
     await apiClient.delete(`/posts/${id}`);
 }
 
+/**
+ * method to patch a note
+ * @param id 
+ * @param noteTitle
+ */
+export const patchNote = async (id: number, noteTitle: string): Promise<void> => {
+    await apiClient.patch(`/posts/${id}`, {
+        title: noteTitle,
+    });
+}
+
+
 
