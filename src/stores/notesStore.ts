@@ -1,18 +1,32 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { getNotes, deleteNote, patchNote, postNote } from '../services/api.service';
 import type { INote } from '../types/INote';
 
+const SESSSION_STORAGE_KEY = 'notesStore';
+
+const loadNotesFromSessionStorage = (): INote[] => {
+    const notes = sessionStorage.getItem(SESSSION_STORAGE_KEY);
+    return notes ? JSON.parse(notes) : [];
+};
 
 export const useNotesStore = defineStore('notes', () => {
-    const notes = ref<INote[]>([]);
+    const notes = ref<INote[]>(loadNotesFromSessionStorage());
     const isFetching = ref(false);
 
+    watch(notes, (newNotes) => {
+        sessionStorage.setItem(SESSSION_STORAGE_KEY, JSON.stringify(newNotes));
+    }, { deep: true });
+
     const fetchNotes = async () => {
+        if (notes.value.length > 0) {
+            return;
+        }
+
         isFetching.value = true;
         try {
-            notes.value = await getNotes();
-            notes.value = notes.value.map(note => ({
+            const fetchedNotes = await getNotes();
+            notes.value = fetchedNotes.map(note => ({
                 ...note,
                 completed: false // default to false
             }));
@@ -71,3 +85,4 @@ export const useNotesStore = defineStore('notes', () => {
         addNote,
     };
 });
+
