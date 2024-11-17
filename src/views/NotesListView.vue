@@ -29,8 +29,8 @@
                         <input type="checkbox" v-model="note.completed" />
                     </td>
                     <td>
-                        <button @click="confirmEdit(note)">Редактировать</button>
-                        <button @click="confirmDelete(note.id)">Удалить</button>
+                        <BaseButton :buttonText="'Редактировать'" @goAction="confirmEdit(note)" />
+                        <BaseButton :buttonText="'Удалить'" @goAction="confirmDelete(note.id)" />
                     </td>
                 </tr>
             </tbody>
@@ -58,6 +58,7 @@ import { useNotesStore } from '../stores/notesStore';
 // components
 import BaseModal from '../components/BaseModal.vue';
 import BasePreloader from '../components/BasePreloader.vue';
+import BaseButton from '../components/BaseButton.vue';
 
 const notesStore = useNotesStore();
 const notes = computed(() => notesStore.notes);

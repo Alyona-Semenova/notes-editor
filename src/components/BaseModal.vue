@@ -1,5 +1,4 @@
 <template>
-
         <div class="overlay"></div>
         <div class="base-modal">
             <CrossIcon :color="'red'" class="base-modal__close" @click.native="$emit('close')"/>
@@ -7,19 +6,18 @@
             <p v-if="readonly" class="base-modal__text">{{ localModalText }}</p>
             <input v-if="!readonly" class="base-modal__text base-modal__text_edit" :value="localModalText" @input="onInput"/>
             <div class="base-modal__actions">
-                <button class="base-modal__button" @click="onPrimaryAction">{{ primaryActionText }}</button>
-                <button class="base-modal__button" @click="onSecondaryAction">{{ secondaryActionText }}</button>
+                <BaseButton class="base-modal__button" :buttonText="primaryActionText" @goAction="onPrimaryAction" />
+                <BaseButton class="base-modal__button" :buttonText="secondaryActionText" @goAction="onSecondaryAction" />
             </div>
-
         </div>
-  
-</template>
 
+</template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { CrossIcon } from './icons/index'; 
-
+//components
+import BaseButton from './BaseButton.vue';
 
 defineOptions({
     name: 'BaseModal',
