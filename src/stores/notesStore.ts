@@ -1,21 +1,40 @@
 import { defineStore } from 'pinia';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { getNotes, deleteNote, patchNote, postNote } from '../services/api.service';
 import type { INote } from '../types/INote';
 
-const SESSSION_STORAGE_KEY = 'notesStore';
+const SESSION_STORAGE_KEY = 'notesStore';
+const FILTER_STORAGE_KEY = 'completedFilter';
 
 const loadNotesFromSessionStorage = (): INote[] => {
-    const notes = sessionStorage.getItem(SESSSION_STORAGE_KEY);
+    const notes = sessionStorage.getItem(SESSION_STORAGE_KEY);
     return notes ? JSON.parse(notes) : [];
+};
+
+const loadFilterFromSessionStorage = (): boolean => {
+    const filter = sessionStorage.getItem(FILTER_STORAGE_KEY);
+    return filter === 'true';
 };
 
 export const useNotesStore = defineStore('notes', () => {
     const notes = ref<INote[]>(loadNotesFromSessionStorage());
+    const isCompletedFilter = ref(loadFilterFromSessionStorage());
     const isFetching = ref(false);
 
+    const setCompletedFilter = (value: boolean) => {
+        isCompletedFilter.value = value;
+        localStorage.setItem(FILTER_STORAGE_KEY, value.toString());
+    };
+
+    const filteredNotes = computed(() => {
+        if (isCompletedFilter.value) {
+            return notes.value.filter(note => note.completed);
+        }
+        return notes.value;
+    });
+
     watch(notes, (newNotes) => {
-        sessionStorage.setItem(SESSSION_STORAGE_KEY, JSON.stringify(newNotes));
+        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(newNotes));
     }, { deep: true });
 
     const fetchNotes = async () => {
@@ -83,6 +102,8 @@ export const useNotesStore = defineStore('notes', () => {
         removeNote,
         editNote,
         addNote,
+        setCompletedFilter,
+        filteredNotes,
     };
 });
 

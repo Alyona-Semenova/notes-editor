@@ -3,6 +3,7 @@
         <header class="header-page">
             <h1 class="header-page__title">Список заметок</h1>
             <a @click="$router.push('/add')"> + Добавить заметку</a>
+
         </header>
 
         <BasePreloader v-if="isFetching" />
@@ -12,15 +13,15 @@
                 <tr>
                     <th>№</th>
                     <th>Название</th>
-                    <th>Отметка о выполнении</th>
+                    <th @click="toggleFilter"><span>Отметка о выполнении</span><input type="checkbox" v-model="isCompletedFilter"></th>
                     <th>Действия</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(note, index) in notes" :key="note.id">
+                <tr v-for="(note, index) in filteredNotes" :key="note.id">
                     <td>{{ index + 1 }}</td>
                     <td>
-                        <RouterLink :to="{ name: 'noteInfoView', params: { name: formatNoteTitle(note.title) } }">
+                        <RouterLink :to="{ name: 'noteInfoView', state: {id: note.id}, params: { name: formatNoteTitle(note.title)} }">
                             {{ note.title }}
                         </RouterLink>
                     </td>
@@ -51,8 +52,10 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue';
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+// store
 import { useNotesStore } from '../stores/notesStore';
+// components
 import BaseModal from '../components/BaseModal.vue';
 import BasePreloader from '../components/BasePreloader.vue';
 
@@ -60,6 +63,10 @@ const notesStore = useNotesStore();
 const notes = computed(() => notesStore.notes);
 const isFetching = computed(() => notesStore.isFetching);
 const noteId = ref(null);
+
+const route = useRoute();
+const router = useRouter();
+const isCompletedFilter = computed(() => route.query.completed === 'true');
 
 let modalState = reactive({
     readonly: null,
@@ -74,6 +81,20 @@ let modalState = reactive({
 
 
 let isModalOpen = ref(false);
+
+const filteredNotes = computed(() => {
+    if (isCompletedFilter.value) {
+        return notes.value.filter(note => note.completed);
+    }
+    return notes.value;
+});
+
+const toggleFilter = () => {
+    const newFilterState = !isCompletedFilter.value;
+    notesStore.setCompletedFilter(newFilterState);
+    router.push({ query: { completed: newFilterState } });
+};
+
 
 /**
  * get notes from server on component mount
@@ -137,7 +158,6 @@ const handleEditNote = (newNoteTitle: string, completed: boolean) => {
     closeModal();
     noteId.value = null;
 };
-
 
 /**
  * open modal window
