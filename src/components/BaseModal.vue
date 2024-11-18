@@ -1,7 +1,7 @@
 <template>
         <div class="overlay"></div>
         <div class="base-modal">
-            <CrossIcon :color="'red'" class="base-modal__close" @click.native="$emit('close')"/>
+            <CrossIcon class="base-modal__close" @click.native="$emit('close')"/>
             <h3 class="base-modal__title"> {{ modalTitle }}</h3>
             <p v-if="readonly" class="base-modal__text">{{ localModalText }}</p>
             <input v-if="!readonly" class="base-modal__text base-modal__text_edit" :value="localModalText" @input="onInput"/>
@@ -16,6 +16,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { CrossIcon } from './icons/index'; 
+
 //components
 import BaseButton from './BaseButton.vue';
 
@@ -25,32 +26,21 @@ defineOptions({
 
 const emit = defineEmits(['primaryAction', 'secondaryAction', 'close'])
 
-const props = defineProps({
-    primaryActionText: {
-        type: String,
-        default: 'Удалить',
-    },
+const props = defineProps<{
+    primaryActionText?: string; 
+    secondaryActionText?: string;
+    modalTitle?: string; 
+    modalText?: string; 
+    readonly?: boolean; 
+}>()
 
-    secondaryActionText: {
-        type: String,
-        default: 'Отмена',
-    },
-
-    modalTitle : {
-        type: String,
-        default: 'Удалить',
-    },
-
-    modalText: {
-        type: String,
-        default: 'Подтвердите действие',
-    },
-
-    readonly: {
-        type: Boolean,
-        default: true
-    }
-})
+const { 
+    primaryActionText = 'Удалить', 
+    secondaryActionText = 'Отмена', 
+    modalTitle = 'Удалить', 
+    modalText = 'Подтвердите действие', 
+    readonly = true 
+} = props;
 
 let localModalText = ref(props.modalText);
 
@@ -85,7 +75,7 @@ const onInput = (event: Event) => {
 
 .base-modal {
     width: 500px;
-    height: 150px;
+    height: 200px;
     position: fixed;
     top: calc(50% - 75px);
     left: calc(50% - 250px);
@@ -94,20 +84,24 @@ const onInput = (event: Event) => {
     border-radius: 10px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: space-evenly;
+    padding: 20px;
+    justify-content: space-between;
     z-index: 1;
+
+    &__text{
+        text-align: center;
+    }
 
     &__actions {
         display: flex;
-        gap: 10px;
+        gap: 20px;
         justify-content: center;
         width: 100%;
     }
 
     &__close {
         position: absolute;
-        top: 10px;
+        top: 20px;
         right: 20px;
         font-size: 20px;
         cursor: pointer;
