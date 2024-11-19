@@ -32,6 +32,7 @@ const goAction = () => {
     background-color: #3AAFA9;
     outline: none;
     border: none;
+    cursor: pointer;
 
     position: relative;
     -webkit-transition: all 0.2s;

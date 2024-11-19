@@ -1,37 +1,26 @@
 <template>
     <section class="notes-list-view">
-        <header class="header-page">
-            <h1 class="header-page__title">Список заметок</h1>
-            <a class="header-page__add" @click="$router.push('/add')"> + Добавить заметку</a>
-        </header>
+
+        <BaseHeaderPage :headerPageTitle="'Список заметок'" />
+        <RouterLink to="/add" class="notes-list-view__add-note"> + Добавить заметку</RouterLink>
 
         <BasePreloader v-if="isFetching"/>
 
         <table class="table-notes">
-            <thead class="table-notes__header">
-                <tr class="table-notes__header-row">
-                    <th class="table-notes__header-cell cell-1">№</th>
-                    <th class="table-notes__header-cell cell-2">Название</th>
-                    <th class="table-notes__header-cell cell-3" @click="toggleFilter"><span>Отметка о выполнении</span><input type="checkbox" v-model="isCompletedFilter"></th>
-                    <th class="table-notes__header-cell cell-4">Действия</th>
-                </tr>
-            </thead>
+            <TableHeader 
+                :toggleFilter="toggleFilter" 
+                :isCompletedFilter="isCompletedFilter" 
+                @update:completedFilter="value => isCompletedFilter = value" 
+                />
             <tbody class="table-notes__body">
-                <tr class="table-notes__body-row" v-for="(note, index) in filteredNotes" :key="note.id" :class="{ 'completed': note.completed }">
-                    <td class="table-notes__body-cell cell-1">{{ index + 1 }}</td>
-                    <td class="table-notes__body-cell cell-2">
-                        <RouterLink :to="{ name: 'noteInfoView', state: {id: note.id}, params: { name: formatNoteTitle(note.title)} }">
-                            {{ note.title }}
-                        </RouterLink>
-                    </td>
-                    <td class="table-notes__body-cell cell-3">
-                        <input type="checkbox" v-model="note.completed"  />
-                    </td>
-                    <td class="table-notes__body-cell cell-4">
-                        <BaseButton :buttonText="'Редактировать'" @goAction="confirmEdit(note)" />
-                        <BaseButton :buttonText="'Удалить'" @goAction="confirmDelete(note.id)" />
-                    </td>
-                </tr>
+                <TableRow 
+                    v-for="(note, index) in filteredNotes" 
+                    :key="note.id" 
+                    :note="note" 
+                    :index="index" 
+                    :confirmEdit="confirmEdit" 
+                    :confirmDelete="confirmDelete" 
+                />
             </tbody>
         </table>
     </section>
@@ -52,15 +41,16 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import type { INote } from '../types/INote';
-
+// types
+import type { INote, IModalState } from '../types';
 // store
 import { useNotesStore } from '../stores/notesStore';
-
 // components
 import BaseModal from '../components/BaseModal.vue';
 import BasePreloader from '../components/BasePreloader.vue';
-import BaseButton from '../components/BaseButton.vue';
+import TableHeader from '../components/table/TableHeader.vue';
+import TableRow from '../components/table/TableRow.vue';
+import BaseHeaderPage from '../components/BaseHeaderPage.vue';
 
 const notesStore = useNotesStore();
 const notes = computed(() => notesStore.notes);
@@ -72,7 +62,7 @@ const router = useRouter();
 const isCompletedFilter = computed(() => route.query.completed === 'true');
 
 let modalState = reactive({
-    readonly: null,
+    readonly: true,
     modalTitle: '',
     modalText: '', 
     modalPrimaryActionText: '', 
@@ -97,21 +87,12 @@ const toggleFilter = () => {
     router.push({ query: { completed: newFilterState } });
 };
 
-
 /**
  * get notes from server on component mount
  */
 onMounted(() => {
     notesStore.fetchNotes();
 });
-
-/**
- * format note title to url-friendly format
- * @param {string} title 
- */
-const formatNoteTitle = (title: string) => {
-    return title.trim().replace(/\s+/g, '-');
-};
 
 const confirmDelete = (id: number): void => {
     noteId.value = id;
@@ -168,7 +149,7 @@ const handleEditNote = (newNoteTitle: string, completed: boolean): void => {
  * @param {} primaryActionHandler 
  * @param {} secondaryActionHandle 
  */
-let openModal = (newModalState): void => {
+let openModal = (newModalState: IModalState): void => {
     modalState = newModalState;
     changeActiveModal(true);
 };
@@ -193,72 +174,24 @@ const changeActiveModal = (state?: boolean) => {
 </script>
 
 <style lang="scss" scoped>
-h1 {
-    margin-bottom: 20px;
-}
 
-button {
-    margin-right: 5px;
-    cursor: pointer;
+.table-notes{
+    margin-top: 10px;
+    width: 100%;
+    border-collapse: collapse;
 }
-
-.header-page {
-    &__add {
+.notes-list-view{
+    &__add-note{
         display:inline-block ;
         width: 100%;
         text-align: end;
         color: #2B7A78;
         font-weight: bold;
         font-style: italic;
-        cursor: pointer;
+        text-decoration: none;
     }
 }
 
-.table-notes {
-    margin-top: 10px;
-    width: 100%;
-    border-collapse: collapse;
 
-    &__header-cell,
-    &__body-cell {
-        border: 1px solid #ddd;
-        padding: 8px;
-    }
-
-    &__header {
-    background-color: #f2f2f2;
-    }
-
-    &__body-row {
-        &:hover {
-            background-color: rgba(235, 252, 246, 0.5);
-        }
-
-        &.completed {
-           background-color: #d9fff2;
-
-            &:hover{
-                background-color: rgba(217, 255, 242, 0.6)
-            }
-        }
-    }
-
-.cell-1 {
-    width: 5%; 
-}
-
-.cell-2 {
-    width: 45%; 
-}
-
-.cell-3 {
-    width: 20%; 
-}
-
-.cell-4 {
-    width: 30%; 
-}
-
-}
 
 </style>

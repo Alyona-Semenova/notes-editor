@@ -1,24 +1,31 @@
 <template>
         <div class="overlay"></div>
-        <div class="base-modal">
-            <CrossIcon class="base-modal__close" @click.native="$emit('close')"/>
+        <div class="base-modal" role="dialog">
+            <CrossIcon class="base-modal__close" @click.native="closeModal"/>
             <h3 class="base-modal__title"> {{ modalTitle }}</h3>
             <p v-if="readonly" class="base-modal__text">{{ localModalText }}</p>
-            <input v-if="!readonly" class="base-modal__text base-modal__text_edit" :value="localModalText" @input="onInput"/>
+            <BaseInput 
+                v-if="!readonly"
+                label="Название новой заметки"
+                inputId="name"
+                v-model="localModalText"
+                :hasError="errors.title !== ''"
+                :errorMessage="errors.title"
+            />
             <div class="base-modal__actions">
                 <BaseButton class="base-modal__button" :buttonText="primaryActionText" @goAction="onPrimaryAction" />
                 <BaseButton class="base-modal__button" :buttonText="secondaryActionText" @goAction="onSecondaryAction" />
             </div>
         </div>
-
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount, reactive  } from 'vue'
 import { CrossIcon } from './icons/index'; 
 
 //components
 import BaseButton from './BaseButton.vue';
+import BaseInput from './BaseInput.vue';
 
 defineOptions({
     name: 'BaseModal',
@@ -32,6 +39,8 @@ const props = defineProps<{
     modalTitle?: string; 
     modalText?: string; 
     readonly?: boolean; 
+    minLenghtText?: number; 
+    maxLenghtText?: number; 
 }>()
 
 const { 
@@ -39,30 +48,73 @@ const {
     secondaryActionText = 'Отмена', 
     modalTitle = 'Удалить', 
     modalText = 'Подтвердите действие', 
-    readonly = true 
+    readonly = true,
+    minLenghtText = 3,
+    maxLenghtText = 50,
 } = props;
 
-let localModalText = ref(props.modalText);
+let localModalText = ref<string | undefined>(props.modalText);
+
+const errors = reactive({
+    title: '',
+});
+
+
+const validateInput = () => {
+    errors.title = ''; 
+
+    const titleLength = localModalText.value?.length || 0;
+    if (titleLength < minLenghtText || titleLength > maxLenghtText) {
+        errors.title = `Поле должно содержать от ${minLenghtText} до ${maxLenghtText} символов`;
+        return false;
+    }
+    return true;
+};
+
+const onInput = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    localModalText.value = target.value;
+}
+
+const trapTabKey = (event: KeyboardEvent) => {
+    if (event.key === 'Tab') {
+        event.preventDefault();
+    };
+};
+
+
+onMounted(() => {
+    document.body.classList.add('modal-open');
+    document.addEventListener('keydown', trapTabKey);
+});
+
+onBeforeUnmount (() => {
+    document.body.classList.remove('modal-open');
+    document.removeEventListener('keydown', trapTabKey);
+});
 
 const onPrimaryAction = () => {
-    if (!props.readonly && localModalText.value !== props.modalText) { 
+    if (!props.readonly) {
+        const isValid = validateInput(); 
+        if (!isValid) return; 
         emit('primaryAction', localModalText.value);
     } else {
-        emit('primaryAction')
+        emit('primaryAction');
     }
 };
 
 const onSecondaryAction = () => {
-    emit('secondaryAction')
+    emit('secondaryAction');
 };
 
-const onInput = (event: Event) => {
-    localModalText.value = (event.target as HTMLInputElement).value; 
+const closeModal = () => {
+    emit('close');
 };
 
 </script>
 
 <style lang="scss" scoped>
+
 .overlay {
     position: fixed;
     top: 0;
@@ -90,6 +142,10 @@ const onInput = (event: Event) => {
 
     &__text{
         text-align: center;
+
+        &_edit {
+            text-align: left;
+        }
     }
 
     &__actions {

@@ -83,7 +83,7 @@ export const useNotesStore = defineStore('notes', () => {
         }
     }
 
-    const addNote = async (note: any) => {
+    const addNote = async (note: INote) => {
         isFetching.value = true;
         try {
             let newNote = await postNote(note);
