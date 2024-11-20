@@ -2,7 +2,7 @@
  * Interface for a note object
  */
 export interface INote {
-    id?: number;
+    id: number;
     title: string;
     body: string;
     userId: number;

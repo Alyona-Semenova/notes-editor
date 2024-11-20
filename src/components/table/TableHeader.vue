@@ -5,21 +5,28 @@
             <th class="table-header__header-cell cell-2">Название</th>
             <th class="table-header__header-cell cell-3" @click="toggleFilter">
                 <span>Отметка о выполнении</span>
-                <input type="checkbox" :checked="isCompletedFilter" @change="updateFilter($event.target.checked)">
+                <input type="checkbox" :checked="isCompletedFilter" @change="handleCheckboxChange">
             </th>
             <th class="table-header__header-cell cell-4">Действия</th>
         </tr>
     </thead>
 </template>
 
+
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue';
 
 const emit = defineEmits(['update:completedFilter']);
 
-const updateFilter = (value : boolean): void => {
+const handleCheckboxChange = (event: Event) => {
+    const target = event.currentTarget as HTMLInputElement;
+    updateFilter(target.checked);
+};
+
+const updateFilter = (value: boolean): void => {
     emit('update:completedFilter', value);
-}
+};
+
 
 const props = defineProps<{
     toggleFilter: () => void,
