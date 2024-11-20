@@ -66,6 +66,7 @@ const setValidationsPassedValue = (value: boolean) => {
 
 const addNote = () => {
     const noteToAdd = {
+        id: -1,
         title: newNote.title,
         body: newNote.title,
         userId: newNote.userId,

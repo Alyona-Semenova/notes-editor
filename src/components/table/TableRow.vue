@@ -19,7 +19,11 @@
 <script setup lang="ts">
 import { defineProps } from 'vue';
 import { RouterLink } from 'vue-router';
-import  BaseButton  from '../BaseButton.vue';
+//types
+import type { INote } from '@/types';
+
+//components
+import BaseButton from '@/components/BaseButton.vue';
 
 /**
  * format note title to url-friendly format
@@ -30,10 +34,10 @@ import  BaseButton  from '../BaseButton.vue';
 };
 
 const props = defineProps<{
-    note: Object;
-    index: Number;
-    confirmEdit: Function;
-    confirmDelete: Function;
+    note: INote;
+    index: number;
+    confirmEdit: (note: INote) => void;
+    confirmDelete: (id: number) => void;
 }>();
 
 </script>
