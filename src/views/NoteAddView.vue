@@ -7,20 +7,20 @@
         <BaseHeaderPage :headerPageTitle="'Создать заметку'" />
 
         <form @submit.prevent="addNote" class="note-add-form">
-            <BaseInput 
-                label="Название новой заметки"
-                inputId="name"
-                v-model="newNote.title"
-                :hasError="errors.title !== ''"
-                :errorMessage="errors.title"
+            <BaseInput label="Название новой заметки"
+                inputId="add-note" 
+                v-model="newNote.title" 
                 :needLabel="true"
+                :validations="validationsArray" 
+                @isAllValid="setValidationsPassedValue" 
             />
+
             <div class="note-add-form__checkbox">
                 <label for="checkbox">Отметка о выполнении: </label>
                 <input type="checkbox" v-model="newNote.completed" name="checkbox" id="checkbox" />
             </div>
             <div class="note-add-form__add">
-                <BaseButton :buttonText="'Добавить'"/>
+                <BaseButton :buttonText="'Добавить'" />
             </div>
         </form>
     </section>
@@ -28,20 +28,23 @@
 
 
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-
+//stores
 import { useNotesStore } from '../stores/notesStore';
+//icons
 import { ArrowBackIcon } from '@/components/icons/index';
+// types
+import { ValidationTypes, createValidator } from '../types/ValidationTypes';
+import type { IValidationSetting } from '../types/ValidationTypes';
 
 //components
-import  BaseButton  from '@/components/BaseButton.vue';
+import BaseButton from '@/components/BaseButton.vue';
 import BaseHeaderPage from '@/components/BaseHeaderPage.vue';
 import BaseInput from '@/components/BaseInput.vue';
 
 const router = useRouter();
 const notesStore = useNotesStore();
-
 const newNote = reactive({
     title: '',
     body: '',
@@ -49,10 +52,17 @@ const newNote = reactive({
     completed: false,
 })
 
-const errors = reactive({
-    title: '',
-});
+let validationsArray = reactive<IValidationSetting[]>([
+    {
+        title: ValidationTypes.Length,
+        settings: createValidator(ValidationTypes.Length, 3, 50),
+    },
+]);
 
+let isAllValidationsPassed = ref(false);
+const setValidationsPassedValue = (value: boolean) => {
+    isAllValidationsPassed.value = value;
+}
 
 const addNote = () => {
     const noteToAdd = {
@@ -62,48 +72,29 @@ const addNote = () => {
         completed: newNote.completed,
     };
 
-    const isValid = validateNote(noteToAdd);
-
-    if(isValid) {
+    if (isAllValidationsPassed.value === true) {
         notesStore.addNote(noteToAdd);
         router.push('/');
-    } 
-
-};
-
-
-const validateNote = (note) => {
-    errors.title = ''; 
-    const titleLength = note.title.length;
-
-    if (titleLength < 3 || titleLength > 50) {
-        errors.title = 'Название заметки должно содержать от 3 до 50 символов';
-        return false;
     }
-    return true;
 };
-
-
-
 </script>
 
 <style lang="scss" scoped>
-
 .note-add-view {
     width: 100%;
     height: 100%;
 
-    .arrow-back-icon{
+    .arrow-back-icon {
         cursor: pointer;
     }
 
-    .note-add-form{
+    .note-add-form {
         margin-top: 20px;
         display: flex;
         flex-direction: column;
         gap: 10px;
 
-        &__checkbox{
+        &__checkbox {
             label {
                 user-select: none;
                 cursor: pointer;
@@ -116,11 +107,11 @@ const validateNote = (note) => {
     }
 
     .input-error {
-        border: 1px solid red; 
+        border: 1px solid red;
     }
 
     .error-message {
-        color: red; 
+        color: red;
         font-size: 12px;
     }
 }

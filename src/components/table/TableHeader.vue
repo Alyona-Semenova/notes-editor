@@ -17,13 +17,13 @@ import { defineProps, defineEmits } from 'vue';
 
 const emit = defineEmits(['update:completedFilter']);
 
-const updateFilter = (value): void => {
+const updateFilter = (value : boolean): void => {
     emit('update:completedFilter', value);
 }
 
 const props = defineProps<{
-    toggleFilter: Function,
-    isCompletedFilter: Boolean,
+    toggleFilter: () => void,
+    isCompletedFilter: boolean,
 }>();
 
 </script>

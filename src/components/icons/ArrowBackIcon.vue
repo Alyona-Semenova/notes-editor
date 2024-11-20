@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import IconWrapper from "@/components/icons/IconWrapper.vue"
 
 defineOptions({
@@ -19,7 +18,6 @@ const props = defineProps({
         required: false,
     }
 });
-
 </script>
 
 <template>

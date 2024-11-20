@@ -1,31 +1,28 @@
 <template>
+    <section>
         <div class="overlay"></div>
         <div class="base-modal" role="dialog">
-            <CrossIcon class="base-modal__close" @click.native="closeModal"/>
+            <CrossIcon class="base-modal__close" @click.native="closeModal" />
             <h3 class="base-modal__title"> {{ modalTitle }}</h3>
-            <p v-if="readonly" class="base-modal__text">{{ localModalText }}</p>
-            <BaseInput 
-                v-if="!readonly"
-                label="Название новой заметки"
-                inputId="name"
-                v-model="localModalText"
-                :hasError="errors.title !== ''"
-                :errorMessage="errors.title"
-            />
+
+            <slot> </slot>
+
             <div class="base-modal__actions">
                 <BaseButton class="base-modal__button" :buttonText="primaryActionText" @goAction="onPrimaryAction" />
-                <BaseButton class="base-modal__button" :buttonText="secondaryActionText" @goAction="onSecondaryAction" />
+                <BaseButton class="base-modal__button" :buttonText="secondaryActionText"
+                    @goAction="onSecondaryAction" />
             </div>
         </div>
+    </section>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, reactive  } from 'vue'
-import { CrossIcon } from './icons/index'; 
+import { onMounted, onBeforeUnmount } from 'vue'
+//icons
+import { CrossIcon } from './icons/index';
 
 //components
 import BaseButton from './BaseButton.vue';
-import BaseInput from './BaseInput.vue';
 
 defineOptions({
     name: 'BaseModal',
@@ -34,47 +31,16 @@ defineOptions({
 const emit = defineEmits(['primaryAction', 'secondaryAction', 'close'])
 
 const props = defineProps<{
-    primaryActionText?: string; 
+    primaryActionText?: string;
     secondaryActionText?: string;
-    modalTitle?: string; 
-    modalText?: string; 
-    readonly?: boolean; 
-    minLenghtText?: number; 
-    maxLenghtText?: number; 
+    modalTitle?: string;
 }>()
 
-const { 
-    primaryActionText = 'Удалить', 
-    secondaryActionText = 'Отмена', 
-    modalTitle = 'Удалить', 
-    modalText = 'Подтвердите действие', 
-    readonly = true,
-    minLenghtText = 3,
-    maxLenghtText = 50,
+const {
+    primaryActionText = 'Удалить',
+    secondaryActionText = 'Отмена',
+    modalTitle = 'Удалить',
 } = props;
-
-let localModalText = ref<string | undefined>(props.modalText);
-
-const errors = reactive({
-    title: '',
-});
-
-
-const validateInput = () => {
-    errors.title = ''; 
-
-    const titleLength = localModalText.value?.length || 0;
-    if (titleLength < minLenghtText || titleLength > maxLenghtText) {
-        errors.title = `Поле должно содержать от ${minLenghtText} до ${maxLenghtText} символов`;
-        return false;
-    }
-    return true;
-};
-
-const onInput = (event: Event) => {
-    const target = event.target as HTMLInputElement;
-    localModalText.value = target.value;
-}
 
 const trapTabKey = (event: KeyboardEvent) => {
     if (event.key === 'Tab') {
@@ -82,25 +48,18 @@ const trapTabKey = (event: KeyboardEvent) => {
     };
 };
 
-
 onMounted(() => {
     document.body.classList.add('modal-open');
     document.addEventListener('keydown', trapTabKey);
 });
 
-onBeforeUnmount (() => {
+onBeforeUnmount(() => {
     document.body.classList.remove('modal-open');
     document.removeEventListener('keydown', trapTabKey);
 });
 
 const onPrimaryAction = () => {
-    if (!props.readonly) {
-        const isValid = validateInput(); 
-        if (!isValid) return; 
-        emit('primaryAction', localModalText.value);
-    } else {
-        emit('primaryAction');
-    }
+    emit('primaryAction');
 };
 
 const onSecondaryAction = () => {
@@ -114,7 +73,6 @@ const closeModal = () => {
 </script>
 
 <style lang="scss" scoped>
-
 .overlay {
     position: fixed;
     top: 0;
@@ -139,14 +97,6 @@ const closeModal = () => {
     padding: 20px;
     justify-content: space-between;
     z-index: 1;
-
-    &__text{
-        text-align: center;
-
-        &_edit {
-            text-align: left;
-        }
-    }
 
     &__actions {
         display: flex;

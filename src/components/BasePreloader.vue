@@ -28,8 +28,8 @@ defineOptions({
         height: 50px;
         width: 50px;
         margin: 40vh auto;
-        border: 5px solid rgba(16, 85, 3, 0.45);
-        border-top: 5px solid rgb(11, 130, 39);
+        border: 5px solid rgba(43, 122, 120, 0.45);
+        border-top: 5px solid rgb(43, 122, 120);
         border-radius: 50%;
         animation: spin 1s infinite linear;
     }

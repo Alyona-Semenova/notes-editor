@@ -1,51 +1,79 @@
 <template>
     <div class="note-input-field">
         <label v-if="needLabel" :for="inputId">{{ label }}: </label>
-        <input
-            type="text"
-            v-model="inputValue"
-            :id="inputId"
-            :class="{'input-error': hasError, 'input-with-label': needLabel }"
-            required
-        />
-        <div v-if="hasError" class="error-message">{{ errorMessage }}</div>
+        <input autocomplete="off" type="text" v-model="inputValue" :id="inputId"
+            :class="{ 'input-error': hasError, 'input-with-label': needLabel }" required />
+
+        <div v-if="hasError" class="error-messages">
+            <p v-for="errorMessage in errorMessages" :key="errorMessage"> {{ errorMessage }}</p>
+        </div>
+
     </div>
 </template>
 
 <script setup lang="ts">
-
-import { ref, toRefs, watch  } from 'vue';
+import { ref, watch, toRaw } from 'vue';
+import { validationMap } from '../classes/Validation';
 
 const props = defineProps<{
-    needLabel?: boolean; 
-    label?: string; 
-    inputId: string; 
-    modelValue: string; 
-    hasError: boolean; 
-    errorMessage: string; 
+    needLabel?: boolean;
+    label?: string;
+    inputId: string;
+    modelValue: string;
+    hasError?: boolean;
+    errorsText?: any[];
+    validations: any[];
 }>()
 
-const { 
-    needLabel = false, 
-    label = string, 
-    inputId = string, 
-    modelValue = '', 
-    hasError = false, 
-    errorMessage = '', 
+let {
+    needLabel = false,
+    label = '',
+    inputId = '',
+    modelValue = '',
+    hasError = false,
+    errorsText = [],
+    validations = [],
 } = props;
 
-const emit = defineEmits(['update:modelValue']);
-
+const emit = defineEmits(['update:modelValue', 'isAllValid']);
 const inputValue = ref(props.modelValue);
+let localValidationsArray = ref<any[]>(props.validations);
+let errorMessages = ref<string[]>(errorsText);
+let isErrorResult = ref<boolean>(false);
 
 watch(inputValue, (newValue) => {
     emit('update:modelValue', newValue);
+    validate();
 });
 
+const validate = () => {
+    errorMessages.value = [];
+    isErrorResult.value = false;
+
+    for (let i = 0; i < localValidationsArray.value.length; i++) {
+        const validationItem = toRaw(localValidationsArray.value[i]);
+        let validation = new validationMap[validationItem.title](...Object.values(validationItem.settings));
+        const check = validation.check(inputValue.value);
+        const isValid = check.isValid;
+
+        if (!isValid) {
+            isErrorResult.value = true;
+            errorMessages.value.push(check.errorMessage);
+        }
+    }
+
+    if (isErrorResult.value === true) {
+        hasError = true;
+        emit('isAllValid', false)
+    } else {
+        hasError = false;
+        emit('isAllValid', true)
+    }
+}
 </script>
 
 <style lang="scss" scoped>
-.note-input-field{
+.note-input-field {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -64,8 +92,12 @@ watch(inputValue, (newValue) => {
     border: 1px solid red;
 }
 
-.error-message {
-    color: red; 
+.error-messages {
+    color: red;
     font-size: 12px;
+
+    &__message {
+        margin-bottom: 5px;
+    }
 }
 </style>

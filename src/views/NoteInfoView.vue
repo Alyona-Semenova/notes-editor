@@ -3,7 +3,7 @@
         <div class="arrow-back-icon">
             <ArrowBackIcon @click="$router.push('/')" />
         </div>
-        
+
         <BaseHeaderPage v-if="note" :headerPageTitle="note.title" />
 
         <main>
@@ -21,16 +21,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+//stores
 import { useNotesStore } from '../stores/notesStore';
-
 //components
 import ArrowBackIcon from '@/components/icons/ArrowBackIcon.vue';
 import BaseHeaderPage from '@/components/BaseHeaderPage.vue';
 
-const route = useRoute();
 const notesStore = useNotesStore();
-const noteId = window.history.state.id; 
+const noteId = window.history.state.id;
 
 const note = computed(() => {
     return notesStore.notes.find(note => note.id === Number(noteId));
@@ -38,11 +36,9 @@ const note = computed(() => {
 
 </script>
 
-
 <style lang="scss" scoped>
-
 .note-info-view {
-    cursor: default; 
+    cursor: default;
 }
 
 .arrow-back-icon {
